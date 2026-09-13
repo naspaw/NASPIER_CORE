@@ -1,0 +1,40 @@
+# --- KiCad ---------------------------------------------------------------
+# Backups, autosaves and lock files
+*.bak
+*-backups/
+*.kicad_pcb-bak
+*.kicad_sch-bak
+*.kicad_prl
+_autosave-*
+~*.lck
+\#auto_saved_files#
+
+# Netlists and generated reports
+*.net
+*.xml
+*-erc.rpt
+*-drc.rpt
+*.dsn
+*.ses
+fp-info-cache
+
+# Fabrication / assembly output
+gerbers/
+jlcpcb/
+production/
+*.gbr
+*.gbrjob
+*.drl
+*-pos.csv
+*.step
+*.stp
+
+# KiCad plugin / tool state
+.kinotes/
+.history/
+
+# --- OS ------------------------------------------------------------------
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
