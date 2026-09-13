@@ -81,6 +81,19 @@ Two consequences worth stating plainly:
   interchangeable with a third-party IMU board. It does not affect carrier compatibility, because
   X3 never faces the carrier.
 
+### Upcoming — PAB standard carrier board
+
+A companion carrier board is in design. It is built to the **Pixhawk Autopilot Bus** standard
+([DS-010](https://github.com/pixhawk/Pixhawk-Standards/blob/master/DS-010%20Pixhawk%20Autopilot%20Bus%20Standard.pdf)) —
+the same board-to-board interface that standard v5X and v6X modules use.
+
+Because it targets the bus standard rather than one specific module, it is intended to accept a
+**standard v6X or v5X autopilot module** just as readily as **Naspier Core**. Naspier Core is not a
+prerequisite for it, and it is not a prerequisite for Naspier Core.
+
+It is early — nothing about it is published yet, and it will get its own documentation once the
+design is further along.
+
 ---
 
 ## Specifications
@@ -132,7 +145,7 @@ VDD_5V_SYS ──► L1  1 µH / 3.1 A / 55 mΩ ──► VDD_5V_FILTERED
                   (CIGT201208EH1R0MNE)           │
         ├─► U5  MCP1727T-3302E/MF ──► VDD_REG_FMU_3V3   main FMU rail   
         │         └─► NFM18PC104R1C3D ──► FMU_3V3 digital / FMU_3V3A analog
-        ├─► U7  MCP1727T-3302E/MF ──► VDD_3V3_AUX       aux rail, intead of FMU Power rail for extentions
+        ├─► U7  MCP1727T-3302E/MF ──► VDD_3V3_AUX       aux rail, instead of the FMU rail for extensions
         ├─► U6  LDL212PV33R ────────► VDD_SENSOR_BUS_1  on-board ICM-45686 + MS5611
         ├─► U8  LDL212PV33R ────────► VDD_SENSOR_BUS_2  → Imu Board Connector
         ├─► U9  LDL212PV33R ────────► VDD_SENSOR_BUS_3  → Imu Board Connector
