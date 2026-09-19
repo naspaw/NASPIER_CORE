@@ -19,9 +19,9 @@ Three connectors leave the module:
 
 ---
 
-## X1 — 100-pin (CN1)
+## X1 — 100-pin (CN2)
 
-Follows the Pixhawk v6X 100-pin pinout: 5 V system power, FMU PWM channels 1–8, the four I2C buses,
+Follows the Pixhawk v6X 100-pin pinout: 5 V system power, FMU PWM channels 1–8, I2C1–I2C3,
 CAN1/CAN2, the full UART set, USB, SWD, ADC inputs and the power-module select lines. Pins 101–104
 are the connector hold-downs, tied to GND.
 
@@ -82,7 +82,7 @@ are the connector hold-downs, tied to GND.
 
 ---
 
-## X2 — 50-pin (CN2)
+## X2 — 50-pin (CN4)
 
 Carries 100BASE-T RMII Ethernet, the external SPI6 bus, `SPIX_SYNC` and `PG6`.
 
@@ -127,12 +127,12 @@ additions, and wiring them is a candidate for a later revision.
 
 ---
 
-## X3 — 34-pin FFC (CN3)
+## X3 — 34-pin FFC (CN5)
 
 **This connector is not a Pixhawk standard connector.** It is a private link between Naspier Core
 and the Naspier V2 IMU board, and it never faces the carrier. It carries:
 
-- **SPI2** to the LSM6DSV (IMU2)
+- **SPI2** to the LSM6DSV32X (IMU2), one chip select and a data-ready line
 - **SPI3** to the BMI088 accelerometer + gyroscope (IMU3), two chip selects and a data-ready line
 - **I2C4** plus the BMP581 barometer interrupt and RM3100 magnetometer data-ready lines
 - **Power:** `VDD_SENSOR_BUS_2`, `VDD_SENSOR_BUS_3`, `VDD_SENSOR_BUS_4` (three of the four switched
@@ -161,7 +161,7 @@ convention, marked below: **pin 11** (`I2C4_INT_BARO1_BMP581`) and **pin 13**
 | 25 | `GND` | 26 | `GND` |
 | 27 | `GND` | 28 | `VDD_5V_SYS` |
 | 29 | `GND` | 30 | `HEATER` |
-| 31 | *NC* — reserved: `SPI2_DRDY2_ISM330_INT2` | 32 | `VDD_SENSOR_BUS_2` |
+| 31 | `SPI2_DRDY1_LSM6DSV_INT1` | 32 | `VDD_SENSOR_BUS_2` |
 | 33 | `SPI2_nCS1_LSM6DSV` | 34 | `GND` |
 | 35 | `GND` | 36 | `GND` |
 | 37 | `GND` | 38 | `GND` |

@@ -33,8 +33,8 @@ progresses, but it has a deliberate boundary:
 
 | | Status |
 |---|---|
-| Schematic (PDF) | ✅ Published now |
-| System block diagram, connector pinouts, dimensions, 3D renders | ✅ Published now |
+| Schematic (PDF) — core module and Naspier V2 IMU board | ✅ Published now |
+| System block diagram (preliminary), connector pinouts, dimensions, 3D renders | ✅ Published now |
 | **PCB layer images** — layer-by-layer plots | 🕓 Will be published once the PCB layout is finished |
 | **Bill of materials** | 🕓 Will be published once the PCB layout is finished |
 | **Source files** — KiCad project, schematic, board, libraries | ❌ **Will not be published** |
@@ -45,8 +45,8 @@ is intentional, and it is not going to change for this revision.
 
 ## Why H743 and not H753?
 
-The Pixhawk FMUv6X standard specifies the **STM32H753**, whose distinguishing feature over the H743
-is its on-chip **cryptographic / hash accelerator**. Naspier Core deliberately uses the
+Pixhawk v6X flight controllers ship with the **STM32H753** (DS-012 itself only calls for an STM32H7).
+The H753's distinguishing feature over the H743 is its on-chip **cryptographic / hash accelerator**. Naspier Core deliberately uses the
 **STM32H743IIK6** instead.
 
 The two parts are pin-compatible in the same UFBGA-201 10×10 package and otherwise share the same
@@ -55,44 +55,31 @@ the crypto block is intentional: **this board is being designed toward a differe
 standard v6X FMU**, and the secure-element/crypto path is not part of that target. The H743 keeps
 the design simpler and cheaper while leaving the v6X electrical interface untouched.
 
-If you need FMUv6X's security features, this is the wrong board — use an H753-based module.
+**Supply is the other reason.** H753 stock has been thin, and when distributor inventory runs out
+the factory lead times are long. Using the H743 means this board **does not depend on H753
+availability**: if H753 stock is gone, the build carries on with the H743 and simply goes without
+the crypto accelerator. Nothing else about the board changes.
+
+### ⚠️ If you need FMUv6X's security features, this is the wrong board — use an H753-based module.
 
 ## Carrier board compatibility
 
-**Naspier Core is designed to plug into v6X-based carrier boards, and doing so is safe.** X1
-(100-pin) and X2 (50-pin) follow the Pixhawk v6X pinout, so on a classic Pixhawk 6X carrier the
-module presents itself like any other v6X core. Full tables: **[docs/pinout.md](docs/pinout.md)**.
+Naspier Core plugs into standard **Pixhawk v6X carrier boards**. X1 and X2 follow the v6X pinout.
+Full tables: **[docs/pinout.md](docs/pinout.md)**.
 
-| Connector | Contents | On a classic Pixhawk 6X carrier |
-|---|---|---|
-| **X1 — 100P** | 5 V system power, PWM `FMU_CH1`–`CH8`, I2C1–I2C4, CAN1 + CAN2, UART1–UART8, USB, SWD, ADC sense, power-module select A/B/C, safety switch, buzzer | Works as expected |
-| **X2 — 50P** | 100BASE-T RMII Ethernet, external SPI6 (2 × CS, reset, 2 × DRDY), `SPIX_SYNC`, `PG6` | Works as expected |
-| **X2 — 15 reserved pins** | Positions the newer **v6X-RT** update assigns to `FMU_CH9`–`CH12`, `CAN3`, `SPARE09`–`SPARE15`, `ETH_RX_ER`, `ETH_PHY_nINT`, `PH11` | **Left unconnected on this module.** Nothing is driven into them, so there is no conflict on a v6X *or* a v6X-RT carrier |
-| **X3 — 34P FFC** | Sensor link to the Naspier V2 IMU board — **non-standard pinout** | Does not connect to the carrier at all |
+| Connector | Contents |
+|---|---|
+| **X1 — 100P** | Power, PWM 1–8, I2C, CAN, UART, USB, SWD, ADC |
+| **X2 — 50P** | Ethernet (RMII), SPI6. The v6X-RT extra pins are left unconnected. |
+| **X3 — 34P FFC** | Link to the Naspier V2 IMU board. Custom pinout, not used by the carrier. |
 
-Two consequences worth stating plainly:
+PWM 9–12 and CAN3 (v6X-RT additions) are not available on this revision.
 
-- **V0 does not bring out PWM channels 9–12 or CAN3.** Those are v6X-RT additions. The schematic
-  labels the pin positions so the intent is on record, but they are no-connects on this revision.
-  If your airframe needs more than 8 FMU PWM channels from the core, this board does not provide
-  them yet.
-- **X3 is the one genuinely non-standard interface.** It is a private 34-pin link carrying SPI2,
-  SPI3, I2C4, three switched sensor rails and a heater line to the Naspier V2 IMU board. It is not
-  interchangeable with a third-party IMU board. It does not affect carrier compatibility, because
-  X3 never faces the carrier.
+### Upcoming: PAB carrier board
 
-### Upcoming — PAB standard carrier board
-
-A companion carrier board is in design. It is built to the **Pixhawk Autopilot Bus** standard
-([DS-010](https://github.com/pixhawk/Pixhawk-Standards/blob/master/DS-010%20Pixhawk%20Autopilot%20Bus%20Standard.pdf)) —
-the same board-to-board interface that standard v5X and v6X modules use.
-
-Because it targets the bus standard rather than one specific module, it is intended to accept a
-**standard v6X or v5X autopilot module** just as readily as **Naspier Core**. Naspier Core is not a
-prerequisite for it, and it is not a prerequisite for Naspier Core.
-
-It is early — nothing about it is published yet, and it will get its own documentation once the
-design is further along.
+A carrier board built to the **Pixhawk Autopilot Bus** standard
+([DS-010](https://github.com/pixhawk/Pixhawk-Standards/blob/master/DS-010%20Pixhawk%20Autopilot%20Bus%20Standard.pdf))
+is in design. It will accept standard v5X / v6X modules as well as Naspier Core.
 
 ---
 
@@ -105,34 +92,33 @@ design is further along.
 | MCU | STM32H743IIK6, ARM Cortex-M7, 480 MHz |
 | Package | UFBGA-201, 10 × 10 mm, 0.65 mm pitch |
 | Flash / RAM | 2 MB (2M × 8) / 1 MB |
-| Main oscillator | 16.000 MHz (ABM8G-16.000MHZ-18-D2Y-T) |
-| RTC oscillator | 32.768 kHz (SC32S-7PF20PPM) |
+| HS oscillator | 16.000 MHz |
+| LS oscillator | 32.768 kHz  |
 | RTC backup | MS621FE-FL11E rechargeable coin cell on the VBAT line; charge path (D1, R2) is do-not-place in this revision |
 | Status LEDs | Discrete red / green / blue |
 
 ### Sensors and storage
 
-On the core module itself:
+On the core module:
 
-| Part | Function | Bus | Notes |
+| Part | Function | Bus | VDD bus |
 |---|---|---|---|
-| **ICM-45686** | IMU — accelerometer + gyroscope | SPI1 | `SPI1_nCS1`, data-ready on `SPI1_DRDY1`; powered from `VDD_SENSOR_BUS_1` |
-| **MS5611** | Barometer | I2C3 | CSB strapped to select I2C mode; on `VDD_SENSOR_BUS_1` |
-| **FM25V02A** | FRAM — parameter storage | SPI5 | Non-volatile, no write-endurance limit in practice; on `VDD_3V3_AUX` |
-| **AT24C64D** | EEPROM — board ID / config | I2C3 | Address strapped to **0x50**; on `VDD_3V3_AUX` |
-| **503398-1892** | microSD socket, push-in / push-out | SDMMC2, 4-bit | On its own switchable `VDD_SD_CARD` rail |
+| ICM-45686 | IMU1 | SPI1 | `VDD_SENSOR_BUS_1` |
+| MS5611 | Barometer 1 | I2C3 | `VDD_SENSOR_BUS_1` |
+| FM25V02A | FRAM | SPI5 | `VDD_3V3_AUX` |
+| AT24C64D | EEPROM | I2C3 | `VDD_3V3_AUX` |
+| 503398-1892 | microSD | SDMMC2 | `VDD_SD_CARD` |
 
-Across the 34-pin FFC, on the **Naspier V2 IMU board** (separate design):
+On the Naspier V2 IMU board (via the 34-pin FFC):
 
-| Part | Function | Bus |
-|---|---|---|
-| LSM6DSV | IMU2 | SPI2 |
-| BMI088 | IMU3 — separate accel and gyro dies, two chip selects | SPI3 |
-| BMP581 | Barometer 2 — interrupt line only on this connector | I2C4 |
-| RM3100 | Magnetometer — data-ready line only on this connector | I2C4 |
-| — | Sensor heater | `HEATER` drive line |
-
-The 1.5 kΩ pull-ups for all four I2C buses live on the core module, on `VDD_REG_FMU_3V3`.
+| Part | Function | Bus | VDD bus |
+|---|---|---|---|
+| LSM6DSV32X | IMU2 | SPI2 | `VDD_SENSOR_BUS_2` |
+| BMI088 | IMU3 | SPI3 | `VDD_SENSOR_BUS_3` |
+| BMP581 | Barometer 2 | I2C4 | `VDD_SENSOR_BUS_2` |
+| RM3100 | Magnetometer | I2C4 | `VDD_SENSOR_BUS_4` |
+| AT24C64D | EEPROM | I2C4 | `VDD_SENSOR_BUS_4` |
+| AO3400A | Heater driver | — | `VDD_5V_SYS` |
 
 ### Power structure
 
@@ -140,21 +126,8 @@ Input is **5 V from the carrier** (`VDD_5V_SYS`, four pins on X1). Everything do
 that no single rail takes the whole board down, and so each sensor domain can be power-cycled
 independently — the standard requirement for autopilot sensor recovery.
 
-```
-VDD_5V_SYS ──► L1  1 µH / 3.1 A / 55 mΩ ──► VDD_5V_FILTERED
-                  (CIGT201208EH1R0MNE)           │
-        ├─► U5  MCP1727T-3302E/MF ──► VDD_REG_FMU_3V3   main FMU rail   
-        │         └─► NFM18PC104R1C3D ──► FMU_3V3 digital / FMU_3V3A analog
-        ├─► U7  MCP1727T-3302E/MF ──► VDD_3V3_AUX       aux rail, instead of the FMU rail for extensions
-        ├─► U6  LDL212PV33R ────────► VDD_SENSOR_BUS_1  on-board ICM-45686 + MS5611
-        ├─► U8  LDL212PV33R ────────► VDD_SENSOR_BUS_2  → Imu Board Connector
-        ├─► U9  LDL212PV33R ────────► VDD_SENSOR_BUS_3  → Imu Board Connector
-        ├─► U10 LDL212PV33R ────────► VDD_SENSOR_BUS_4  → Imu Board Connector
-        ├─► U12 LDL212PV33R ────────► VDD_SD_CARD       microSD
-        └─► divider ────────────────► SCALED_V5         5 V input monitoring
-```
 
-> **Note — why L1 is there.** The 1 µH inductor is placed to make the input rail more robust. Many
+> **Note — why L1 is there.** L1, a 1 µH inductor on the `VDD_5V_SYS` input, is placed to make the input rail more robust. Many
 > off-the-shelf BEC modules do **not** hold their output voltage steady under hard conditions —
 > aggressive manoeuvring, heat, high current draw and so on — and sag below nominal, for example
 > 5.0 V dropping to 4.6 V on under-peaks. L1 is there only to slow and filter that ripple.
@@ -180,14 +153,12 @@ Design points:
 - **CAN:** CAN1, CAN2 (X1)
 - **Ethernet:** 100BASE-T RMII — MDIO, MDC, REF_CLK, CRS_DV, RXD0/1, TXD0/1, TX_EN, ETH_POWER_EN
   (the PHY lives on the carrier)
-- **I2C:** I2C1 (GPS1 mag/LED/PM1), I2C2 (GPS2 mag/LED/PM2), I2C3 (on-board baro/EEPROM, external),
-  I2C4 (FMU, to the IMU board)
+- **I2C:** I2C1 (GPS1 mag/LED/PM1), I2C2 (GPS2 mag/LED/PM2), I2C3 (on-board baro/EEPROM, external).
+  I2C4 goes only to the IMU board over X3, not to the carrier.
 - **USB:** `USB_D_P` / `USB_D_N` + `VBUS_SENSE`
 - **SPI6:** external bus — SCK / MISO / MOSI, two chip selects, reset, two data-ready lines
 - **Debug:** `FMU_SWDIO` / `FMU_SWCLK` routed to X1. The board also carries a debug test-point
-  group — TP10 (`VDD_REG_FMU_3V3`), TP13 (`FMU_SWDIO`), TP14 (`FMU_SWCLK`), TP16 (`FMU_nRST`),
-  TP17 (`GND`) — plus TP6–TP9 on the unused SPI4 expansion bus. An 8-pin GH1.25 connector (CN4) is
-  drawn alongside them, annotated in the schematic as serving that debug/programming point group.
+  group.
 - **Other:** buzzer, safety switch + LED, `nARMED`, `FMU_nRST`, `FMU_CAP1`, `FMU_PPM_INPUT`,
   `SPIX_SYNC`, hardware-revision sense lines, RGB status LEDs (discrete red / green / blue)
 
@@ -200,7 +171,8 @@ Full pin-by-pin tables: **[docs/pinout.md](docs/pinout.md)**.
 | Outline | 29.00 × 36.00 mm |
 | Stack-up | **12-layer FR4**, 0.5 Oz / 1 Oz copper, ≈**1.6 mm** finished thickness |
 | Soldermask | **Blue**, top and bottom, vias tented |
-| Mounting | Four corner mounting holes (2.2mm Diameter holes) |
+| Mounting | Four corner holes, **2.3 mm drill / 4.0 mm pad**, on a **31.4 × 24.4 mm** pattern |
+| Vias | BGA fanout **0.15 / 0.32 mm** (drill / diameter), filled and capped · all other signal vias **0.2 / 0.42 mm** · all through-hole, no microvias |
 | Connectors | X1 DF40C-100DP-0.4V(58) · X2 DF40C-50DP-0.4V(58) · X3 BM20B-0.8-34DP-0.4V-51 |
 | EDA tool | KiCad 10 |
 | Fabrication Target | JLCPCB, NextPCB |
@@ -221,17 +193,40 @@ rather than by the carrier.
 targeting **50 Ω single-ended**, marked as such on the connectors sheet. Digital and power routing
 are kept on their own layers, away from that zone.
 
-**The BGA fanout is the open problem.** The STM32H743IIK6 is a **UFBGA-201 at 0.65 mm pitch** in a
-10 × 10 mm body. At that pitch only the outermost ball rows escape cleanly with conventional dogbone
-vias; the inner rows do not. Two approaches are on the table and **the choice has not been made
-yet**:
+**Component placement was revised for signal routing.** Components were moved to shorten and
+untangle the signal paths. The STM32H743 is now deliberately placed **off the board's centre line**.
+This gives the BGA enough free space on both sides for a through-hole fanout, so the board **does
+not need HDI vias**. It breaks the symmetry of the earlier placement, but the H743 is the only part
+moved off-axis. X1, X2 and the mounting holes stay on their DS-012 positions.
 
-| Approach | How it works | Trade-off |
-|---|---|---|
-| **1 — Pad depopulation + through-hole fanout** | Remove selected SD-Card Receptor pads, leaving those pad unconnected, to open escape channels — then fan out with ordinary plated-through vias | Standard, cheap process with wide fab availability. Costs you some balls, so certain peripherals become unusable, and via stubs stay in the stack-up, The SD-Card connector goes less stable on this way. |
-| **2 — Full HDI** | Microvia / via-in-pad fanout under the BGA, with HDI vias used across the whole board | Keeps all 201 balls usable and gives far better signal integrity and plane continuity. Significantly higher cost, longer lead time, fewer capable fabs |
+### BGA fanout — decided: fine-pitch through-hole dogbone
 
-This gets resolved during layout, and whichever wins will be documented here.
+The STM32H743IIK6 is a **UFBGA-201 at 0.65 mm pitch** in a 10 × 10 mm body, mounted on the
+**bottom side**. Two options were on the table: pad depopulation with through-hole fanout, or full
+HDI. **Neither was needed.** The fanout is **complete**:
+
+- **Every one of the 201 balls** is fanned out with a dogbone via. Each via sits on the diagonal
+  between four balls, 0.46 mm from its own ball.
+- **BGA vias are 0.15 mm drill / 0.32 mm diameter**, plated-through Top to Bottom, **filled and
+  capped**. There are no microvias, no blind or buried vias, and no via-in-pad on the balls.
+- **All other signal vias are 0.2 / 0.42 mm.**
+- The fanout escapes on the standard **12-layer, 1.6 mm** stack-up. No balls are depopulated, so
+  every peripheral stays usable.
+
+**Routing after the fanout.** Power and the RMII Ethernet group are routed separately, so neither
+disturbs the other digital signals. Signal routing from the BGA out to its peripherals has started.
+
+The trade-off that remains is the one standard through-hole vias always carry: via stubs stay in the
+stack-up, and the 0.15 mm drill through 1.6 mm is close to a 10.7 : 1 aspect ratio. Both have to be
+confirmed against the chosen fab's capability before ordering.
+
+**Open point — microSD shield tab over the fanout.** The H743 is on the bottom and the microSD socket
+(CN1) is on the top, directly above it. One of the socket's ground shield tabs (pad 11,
+0.7 × 3.33 mm) lands on **10 of the BGA fanout vias**. All 10 are `GND`, the same net as the tab, so
+there is no short and no clearance error. The concern is assembly: those vias must be reliably filled
+and capped, or solder will wick into them during reflow and weaken the socket's mechanical anchor.
+
+![microSD shield tab over the BGA fanout — outer box: BGA via field, inner box: shield tab](docs/images/bga-fanout-sd-shield.png)
 
 ---
 
@@ -241,25 +236,31 @@ This gets resolved during layout, and whichever wins will be documented here.
 |---|---|
 | ![Top render](docs/images/rendered-top.png) | ![Bottom render](docs/images/rendered-bottom.png) |
 
-![Top and bottom layout](docs/images/top-bottom-layout.png)
-
 ## Repository contents
 
 ```
 docs/
 ├── pinout.md                        X1 / X2 / X3 pin tables, generated from the schematic netlist
 ├── schematic/
-│   └── Naspier-Core-Schematic.pdf   Full 5-sheet schematic
+│   └── Naspier-Core-Schematic.pdf   Schematic, core module + Naspier V2 IMU board
 └── images/
-    ├── dimensions.png               Board outline with dimensions
+    ├── dimensions.png               Board outline, mounting-hole pattern and dimensions
     ├── rendered-top.png             3D render, top
-    ├── rendered-bottom.png          3D render, bottom
-    └── top-bottom-layout.png        Layout, both sides
+    ├── rendered-bottom.png          3D render, bottom (H743, X1, X2)
+    └── bga-fanout-sd-shield.png     microSD shield tab over the BGA fanout
 ```
 
-The schematic PDF covers, in order: system block diagram · H743 base (MCU, crystals, LEDs, RTC) ·
-connectors (X1/X2/X3, debug, SPI4 expansion) · on-board elements (IMU, baro, FRAM, EEPROM, SD,
-I2C pull-ups) · power stage.
+The schematic PDF covers, in order:
+
+1. System block diagram (**preliminary**, still being updated)
+2. H743 base: MCU, decoupling, crystals, LEDs, RTC, debug test points,
+3. On-board elements: IMU, baro, FRAM, EEPROM, microSD, I2C pull-ups
+4. Power stage
+5. Connectors: X1, X2, X3
+6. Naspier V2 IMU board: IMU2, IMU3, baro 2, magnetometer, heater, EEPROM, X3 mate
+7. Power bus index
+
+The last two pages are placeholders for the carrier board and are still empty.
 
 > **Editable KiCad source files are not published in this repository** — see
 > [what is published here, and what is not](#what-is-published-here-and-what-is-not).
@@ -270,31 +271,54 @@ I2C pull-ups) · power stage.
 |---|---|
 | Revision | **REV0 VER0** — board ID `NASPIER_CORE_REV0_VER0` |
 | Design started | 2026-08-08 |
-| Last updated | 2026-09-13 |
+| Last updated | 2026-09-19 |
 | Designer | Ahmet Vapurcu (**naspaw**) |
-| Schematic | Drafted, review pending |
-| PCB layout | **Not finished** — fanout strategy undecided |
-| Mechanical | **Not finished** — outline, hole pattern and stack clearance still moving |
+| Schematic | Core drafted, IMU board base schematic added; block diagram preliminary; review pending |
+| PCB layout | **In progress**: 12 layers; placement revised, BGA fanout complete; power and RMII routed apart from digital signals; routing from the BGA to its peripherals started |
+| Mechanical | Mounting holes set (2.3 / 4.0 mm, 31.4 × 24.4 mm); stack clearance to the IMU board, mechanical drawing and IMU vibration isolation still open |
+| Drawings | Core board and IMU board signal drawings, IMU ↔ Core FFC cable drawing — not started |
 | Fabricated | No |
 | Tested | No |
 | Firmware | None — no PX4/ArduPilot board target exists for this design |
 
 ### Upcoming work
 
-What is queued for this design, roughly in order. This list is the honest state of the project —
-none of it is done yet.
+What is queued for this design, roughly in order. This list is the honest state of the project.
 
-| # | Task | What it covers |
-|---|---|---|
-| 1 | **Schematic review** | Full pass over the V0 sheets before any layout work is trusted |
-| 2 | **Fanout selection** | Decide the H743 BGA escape strategy: pad depopulation with through-hole fanout, or full HDI across the board |
-| 3 | **Component placement review** | Check placement against the DS-012 positions for v6X and the mechanical tolerances they imply |
-| 4 | **Mounting hole design** | Hole pattern, keep-outs and stack clearance |
-| 5 | **IMU board assembly design** | How Naspier Core and the Naspier V2 IMU board stack and mate — including whether the IMU board needs mounting holes of its own, or is carried by the FFC and the core board alone |
-| 6 | **Stack-up-driven routing** | Place the RMII group on its 50 Ω single-ended impedance layer; separate digital and power routing onto their own layers |
-| 7 | **BOM availability check** | Confirm every line is actually sourceable before the design is frozen |
-| 8 | **Further design checks** | Remaining private verification passes |
-| 9 | **Publish layer images + BOM** | Once layout is complete — see the release policy above |
+| # | Task | State | What it covers |
+|---|---|---|---|
+| 1 | **Schematic review** | Open | Full pass over the V0 sheets, now including the IMU board |
+| 2 | **Fanout selection** | ✅ Done | Through-hole dogbone, 0.15 / 0.32 mm vias, all 201 balls, 12-layer 1.6 mm |
+| 3 | **Component placement review** | 🔄 In progress | Revised for signal routing; H743 moved off-centre; check against DS-012 positions |
+| 4 | **Mounting hole design** | 🔄 In progress | Holes set at 2.3 / 4.0 mm on 31.4 × 24.4 mm; keep-outs and stack clearance still open |
+| 5 | **microSD shield tab over fanout** | Open | Confirm filled + capped vias with the fab, or move the socket off the 10 GND vias |
+| 6 | **IMU board assembly design** | Open | How Naspier Core and the Naspier V2 IMU board stack and mate, including whether the IMU board needs mounting holes of its own |
+| 7 | **Stack-up-driven routing** | 🔄 In progress | Power and RMII routed apart from digital signals; BGA-to-peripheral signal routing started; RMII on its 50 Ω single-ended layer |
+| 8 | **System block diagram** | Open | First version published; still needs updates |
+| 9 | **Core board signal drawing** | Open | Signal-flow drawing of the core module: H743 to on-board sensors, storage, switched power rails and X1 / X2 / X3 |
+| 10 | **IMU board signal drawing** | Open | Signal-flow drawing of the Naspier V2 IMU board: IMU2, IMU3, baro 2, magnetometer, heater and EEPROM to the X3 mate |
+| 11 | **FFC cable drawing (IMU ↔ Core)** | Open | FFC between Core and the IMU board: pin-to-pin map, length, contact side / orientation, stiffeners |
+| 12 | **Mechanical drawing** | Open | Assembly drawing of Naspier Core and the IMU board: outlines, stack heights, IMU board position, fasteners |
+| 13 | **Vibration isolation mechanics** | Open | Damped mount for the IMU board: isolator type and placement, travel allowance, FFC slack so the cable does not short-circuit the isolation |
+| 14 | **BOM availability check** | ⚠️ Open — issues found | Confirm every line is actually sourceable before the design is frozen. The H743 and BMI088 are already running short; see [supply status](#supply-status) |
+| 15 | **Further design checks** | Open | Remaining private verification passes |
+| 16 | **Publish layer images + BOM** | Open | Once layout is complete; see the release policy above |
+
+### Supply status
+
+The market can change in the time it takes to lay out a board, and this design shows it. When the project
+started on 2026-08-08, both of the parts below were readily available. **As of 2026-09-19, both are close
+to out of stock** at DigiKey and at other distributors:
+
+| Part | Role | At project start | Now |
+|---|---|---|---|
+| **STM32H743IIK6** | MCU | In stock | ⚠️ Close to out of stock |
+| **BMI088** | IMU3, on the IMU board | In stock | ⚠️ Close to out of stock |
+
+This also affects the [H743 vs H753](#why-h743-and-not-h753) reasoning. Choosing the H743 removed the
+dependency on H753 stock, but it does not protect against the H743 itself running short. Before the
+design is frozen, each of these parts needs one of two outcomes: a confirmed source, or a
+drop-in / footprint-compatible alternative.
 
 This README will grow as the design does.
 
@@ -311,8 +335,8 @@ Particularly useful:
 - **v6X compliance** — anything on X1 or X2 that does not match
   [DS-012](https://github.com/pixhawk/Pixhawk-Standards/blob/master/DS-012%20Pixhawk%20Autopilot%20v6X%20Standard.pdf),
   or a carrier board this module would not actually mate with
-- **BGA fanout** — experience with 0.65 mm UFBGA-201 escape routing either way, pad depopulation or
-  full HDI, and what your fab actually charged for it
+- **BGA fanout**: experience with 0.15 mm through vias on a 1.6 mm, 12-layer board at 0.65 mm pitch.
+  Which fabs build it reliably, and what they charge for filled and capped vias
 - **Power tree** — rail sequencing, regulator choice, current headroom, monitoring divider values
 - **Layout and mechanics** — placement against the DS-012 positions, mounting hole pattern, keep-out
   and stack clearance to the IMU board
