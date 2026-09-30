@@ -2,6 +2,36 @@
 
 All notable changes to the Naspier Core hardware design are recorded here.
 
+## [REV0 VER0] — 2026-09-30 · documentation errata
+
+A review found mistakes in the published README and `pinout.md`. The corrections are listed here.
+The README, `pinout.md` and schematic PDF themselves will be updated together with the carrier
+board documentation.
+
+### Corrections
+
+- **`nPOWER_IN_A/B/C` (X1 pins 89, 91, 93) are inputs to the FMU, not power-module select lines.**
+  They carry the active-low "input valid" status from the carrier's power mux (LTC4417
+  `VALID1..3`). The power mux chooses the source itself.
+- **Direction of the carrier power control pins, seen from the FMU:**
+  - `VDD_5V_PERIPH_nEN`, `VDD_5V_HIPOWER_nEN` and `VDD_3V3_SPEKTRUM_POWER_EN` are outputs.
+  - `VDD_5V_PERIPH_nOC` and `VDD_5V_HIPOWER_nOC` are inputs (fault / over-current flags).
+- **`ADC1_3V3` / `ADC1_6V6` (X1 pins 92, 90) are general-purpose analog inputs**, 3.3 V and 6.6 V
+  full-scale. They are not power-module sensing. Battery voltage and current come from digital power
+  modules on I2C1 / I2C2.
+- **RTS/CTS flow control** is on TELEM1 (UART7), TELEM2 (UART5) and TELEM3 (USART2) only. The other
+  UARTs are 2-wire.
+- **USART6 is the 2-wire link to the carrier's IO MCU** (STM32F103), which decodes the RC receiver
+  signal. The README listed it as "RC input", which is only true on carriers without an IO MCU.
+- **The H743 pin map follows the as-built v6X map** used by PX4 `fmu-v6x` and ArduPilot `Pixhawk6X`,
+  not the pin table in DS-012 rev 0.4.0. The X1 / X2 connector pinouts are the same in both.
+- **Sensor rails:** the BMP581 is on `VDD_SENSOR_BUS_4` (listed as `VDD_SENSOR_BUS_2`), and the
+  core-module AT24C64D is on `VDD_SENSOR_BUS_1` (listed as `VDD_3V3_AUX`).
+- **RTC charge path** is D1 and R3 (listed as D1 and R2).
+- **`pinout.md`, X2 pin 48** is `NFC_GPIO` (listed as `GND`).
+- **`pinout.md`, X2 pins 14, 24 and 34** are GND, following the v6X-RT layout. DS-010 lists them as
+  `SPARE03`, `SPARE08` and `SPARE13`.
+
 ## [REV0 VER0] — 2026-09-19 · layout update
 
 Still REV0 VER0, still not fabricated or tested. **The PCB layout moved forward and the BGA fanout
