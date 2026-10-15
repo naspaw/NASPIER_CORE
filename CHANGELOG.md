@@ -2,6 +2,45 @@
 
 All notable changes to the Naspier Core hardware design are recorded here.
 
+## [REV0 VER0] — 2026-10-15 · schematic restructure and carrier board
+
+Still REV0 VER0, still not fabricated or tested. **The schematic is now split by board, and the
+PAB carrier board schematic is drafted.** The schematic PDF is re-plotted with all three boards
+(14 pages). README and `pinout.md` will follow once the schematic review is finished
+([release checklist](https://github.com/naspaw/NASPIER_CORE/issues/2)).
+
+### Schematic structure
+
+- Sheets are grouped by board: **CORE** (H743, power, onboard elements, connectors), **SENSOR**
+  (Naspier V2 IMU board) and **CARRIER** (PAB carrier board). Sheet and symbol identifiers are kept,
+  so the PCB link is unchanged.
+
+### Core module
+
+- **X1 pin 87 now reaches the H743 `NRST`.** The reset net was split by a label name mismatch
+  (`FMU_NRST` / `FMU_nRST`).
+
+### Carrier board (new)
+
+- Power tree with LTC4417 power mux, peripheral and high-power current limiters, IO MCU
+  (STM32F103), B2B receptacles for X1 / X2, peripheral and high-power connector sheets.
+- Added from the PAB-BASE RC05 reference, redrawn by hand:
+  - FMU debug and IO debug connectors (SM10B)
+  - RC IN header with an S.BUS buffer, and an FMU reset-request gate
+  - AD&IO port with ADC input conditioning on `ADC1_3V3` / `ADC1_6V6`
+  - External SPI6 port (BM11B)
+- Fixed: TELEM2 / TELEM3 and GPS2 / UART4 + I2C3 were shorted, the safety switch LED was not
+  connected, and the carrier EEPROM was not on I2C3.
+
+### Open items
+
+- [ ] Schematic ERC to 0 errors
+- [ ] Schematic review, including the carrier board
+- [ ] Components and voltage buses review: part ratings, logic levels, power rails
+- [x] Schematic PDF re-plotted: core, IMU and carrier boards
+- [ ] README and `pinout.md` updated to the new structure
+- [ ] Carrier board PCB (not started)
+
 ## [REV0 VER0] — 2026-09-30 · documentation errata
 
 A review found mistakes in the published README and `pinout.md`. The corrections are listed here.
