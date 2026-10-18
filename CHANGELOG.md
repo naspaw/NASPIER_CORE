@@ -2,6 +2,38 @@
 
 All notable changes to the Naspier Core hardware design are recorded here.
 
+## [REV0 VER0] — 2026-10-18 · three-board documentation, PAB footprints
+
+Still REV0 VER0, still not fabricated or tested. **The README now documents the whole system — core
+module, IMU V2 board and PAB carrier — instead of the core module alone.**
+
+### Documentation
+
+- README rewritten around the three boards: a system overview, an IMU V2 board section and a new
+  PAB carrier section (power mux, protection switches, IO MCU, Ethernet, CAN, connector set).
+- The 2026-09-30 errata are now applied in the README itself: power control and status pin
+  directions, `nPOWER_IN_A/B/C` as status inputs, ADC inputs, the UART table with RTS / CTS, the
+  as-built pin map, the RTC charge path (D1 / R3) and the sensor rails.
+- Sensors and storage are in one table, with buses, I2C addresses and rails, including the carrier
+  EEPROM.
+- New renders of all three boards, top and bottom (`rendered-system-top.png`,
+  `rendered-system-bottom.png`). The core-module renders stay.
+- Schematic PDF re-plotted: 17 pages, now including the flex cable sheet.
+
+### Core module and carrier
+
+- **X1 / X2 now use the official Pixhawk PAB footprints** on both boards. The imported footprints
+  did not mate pin for pin: the carrier X1 receptacle was numbered around the package (1–50, then
+  51–100 back), and the core plugs were row-swapped against the standard. The connector symbols and
+  pinouts are unchanged.
+
+### Open items
+
+- [ ] Schematic review of all three boards: missing / optional parts, label errors, ERC to 0 errors
+- [ ] Sensor, bus and power-bus assignment review
+- [ ] Carrier connector positions and orientations on the PCB
+- [ ] `pinout.md` updated to the final schematic
+
 ## [REV0 VER0] — 2026-10-15 · schematic restructure and carrier board
 
 Still REV0 VER0, still not fabricated or tested. **The schematic is now split by board, and the
