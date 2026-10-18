@@ -1,24 +1,35 @@
 # Naspier Core
 
-**A Pixhawk v6X-compatible flight controller core module — design study, revision REV0 VER0
-(September 2026), referred to below as V0.**
+**A Pixhawk v6X-compatible flight controller system — design study, revision REV0 VER0
+(started September 2026), referred to below as V0.**
 
-Naspier Core is an autopilot core (FMU) module built around the **STM32H743IIK6**. It carries the
-MCU, its power tree, storage and a reference IMU/baro set, and exposes everything through the
-standard Pixhawk **100-pin + 50-pin Hirose DF40C** board-to-board connectors so it drops onto a
-**Pixhawk v6X-standard carrier board**. A third **34-pin FFC connector** links it to the separate
-*Naspier V2 IMU board*.
+Naspier Core started as a single autopilot core (FMU) module built around the **STM32H743IIK6**. It
+is now a **three-board system**, designed and documented together:
 
-![Naspier Core dimensions](docs/images/dimensions.png)
+| Board | What it is | Links to |
+|---|---|---|
+| **Naspier Core** (core module) | The FMU: H743, power tree, storage, IMU1 + baro 1 | Carrier over the standard Pixhawk **X1 (100-pin) + X2 (50-pin)** Hirose DF40 connectors; IMU board over the 34-pin **X3** |
+| **Naspier IMU V2** (sensor board) | Second and third IMU, baro 2, magnetometer, heater, calibration EEPROM | Core X3, through a 34-pin flex cable |
+| **Naspier PAB carrier** (base board) | Power mux, IO MCU, Ethernet PHY, CAN, all vehicle connectors and PWM headers | Core X1 + X2 receptacles, built to the Pixhawk Autopilot Bus standard |
+
+The core still follows the v6X interface on its own, so it is meant to drop onto any
+**Pixhawk v6X-standard carrier**, and the carrier is meant to accept standard v5X / v6X modules.
+
+| Top | Bottom |
+|---|---|
+| ![All three boards, top](docs/images/rendered-system-top.png) | ![All three boards, bottom](docs/images/rendered-system-bottom.png) |
+
+*3D renders, October 2026: core module (top left), IMU V2 board, PAB carrier (bottom). The carrier
+layout is at an early placement stage.*
 
 ---
 
 ## ⚠️ Please read this first
 
-**This is a design board, not a product, and not an officially used board.**
+**This is a design project, not a product, and not an officially used board.**
 
-- It is a personal hardware design exercise. It has **not** been fabricated, assembled, bring-up
-  tested, flight tested, certified, or used in any real vehicle.
+- It is a personal hardware design exercise. None of the boards has been fabricated, assembled,
+  bring-up tested, flight tested, certified, or used in any real vehicle.
 - It is **not** an official Pixhawk / Dronecode / PX4 reference design, and it is not endorsed by,
   affiliated with, or reviewed by any of those projects.
 - Nothing here is production-ready. Treat every number in this repository as *intent*, not as a
@@ -33,7 +44,7 @@ progresses, but it has a deliberate boundary:
 
 | | Status |
 |---|---|
-| Schematic (PDF) — core module and Naspier V2 IMU board | ✅ Published now |
+| Schematic (PDF) — core module, IMU V2 board, PAB carrier, flex cable | ✅ Published now |
 | System block diagram (preliminary), connector pinouts, dimensions, 3D renders | ✅ Published now |
 | **PCB layer images** — layer-by-layer plots | 🕓 Will be published once the PCB layout is finished |
 | **Bill of materials** | 🕓 Will be published once the PCB layout is finished |
@@ -62,28 +73,28 @@ the crypto accelerator. Nothing else about the board changes.
 
 ### ⚠️ If you need FMUv6X's security features, this is the wrong board — use an H753-based module.
 
-## Carrier board compatibility
+---
 
-Naspier Core plugs into standard **Pixhawk v6X carrier boards**. X1 and X2 follow the v6X pinout.
-Full tables: **[docs/pinout.md](docs/pinout.md)**.
+## Core module
 
-| Connector | Contents |
-|---|---|
-| **X1 — 100P** | Power, PWM 1–8, I2C, CAN, UART, USB, SWD, ADC |
-| **X2 — 50P** | Ethernet (RMII), SPI6. The v6X-RT extra pins are left unconnected. |
-| **X3 — 34P FFC** | Link to the Naspier V2 IMU board. Custom pinout, not used by the carrier. |
+### Board-to-board connectors
+
+X1 and X2 follow the v6X / PAB pinout. Full tables: **[docs/pinout.md](docs/pinout.md)**.
+
+| Connector | Part | Contents |
+|---|---|---|
+| **X1 — 100P** | Hirose DF40C-100DP-0.4V | Power, PWM 1–8, I2C, CAN, UART, USB, SWD, ADC |
+| **X2 — 50P** | Hirose DF40C-50DP-0.4V | Ethernet (RMII), SPI6. The v6X-RT extra pins are left unconnected. |
+| **X3 — 34P** | Hirose BM20B-0.8-34DP-0.4V | Link to the IMU V2 board. Not used by the carrier. |
 
 PWM 9–12 and CAN3 (v6X-RT additions) are not available on this revision.
 
-### Upcoming: PAB carrier board
+X1 and X2 use the **official Pixhawk PAB footprints** (the Pixhawk mechanical-interface library that
+DS-010 points to) on both the core and the carrier, so the pins land where a standard Pixhawk
+carrier or module expects them.
 
-A carrier board built to the **Pixhawk Autopilot Bus** standard
-([DS-010](https://github.com/pixhawk/Pixhawk-Standards/blob/master/DS-010%20Pixhawk%20Autopilot%20Bus%20Standard.pdf))
-is in design. It will accept standard v5X / v6X modules as well as Naspier Core.
-
----
-
-## Specifications
+**Pin map.** The H743 pin map follows the as-built v6X map used by PX4 `fmu-v6x` and ArduPilot
+`Pixhawk6X`, not the pin table in DS-012 rev 0.4.0. The X1 / X2 connector pinouts are the same in both.
 
 ### Processor
 
@@ -94,31 +105,8 @@ is in design. It will accept standard v5X / v6X modules as well as Naspier Core.
 | Flash / RAM | 2 MB (2M × 8) / 1 MB |
 | HS oscillator | 16.000 MHz |
 | LS oscillator | 32.768 kHz  |
-| RTC backup | MS621FE-FL11E rechargeable coin cell on the VBAT line; charge path (D1, R2) is do-not-place in this revision |
+| RTC backup | MS621FE-FL11E rechargeable coin cell on the VBAT line; charge path (D1, R3) is do-not-place in this revision |
 | Status LEDs | Discrete red / green / blue |
-
-### Sensors and storage
-
-On the core module:
-
-| Part | Function | Bus | VDD bus |
-|---|---|---|---|
-| ICM-45686 | IMU1 | SPI1 | `VDD_SENSOR_BUS_1` |
-| MS5611 | Barometer 1 | I2C3 | `VDD_SENSOR_BUS_1` |
-| FM25V02A | FRAM | SPI5 | `VDD_3V3_AUX` |
-| AT24C64D | EEPROM | I2C3 | `VDD_3V3_AUX` |
-| 503398-1892 | microSD | SDMMC2 | `VDD_SD_CARD` |
-
-On the Naspier V2 IMU board (via the 34-pin FFC):
-
-| Part | Function | Bus | VDD bus |
-|---|---|---|---|
-| LSM6DSV32X | IMU2 | SPI2 | `VDD_SENSOR_BUS_2` |
-| BMI088 | IMU3 | SPI3 | `VDD_SENSOR_BUS_3` |
-| BMP581 | Barometer 2 | I2C4 | `VDD_SENSOR_BUS_2` |
-| RM3100 | Magnetometer | I2C4 | `VDD_SENSOR_BUS_4` |
-| AT24C64D | EEPROM | I2C4 | `VDD_SENSOR_BUS_4` |
-| AO3400A | Heater driver | — | `VDD_5V_SYS` |
 
 ### Power structure
 
@@ -126,14 +114,13 @@ Input is **5 V from the carrier** (`VDD_5V_SYS`, four pins on X1). Everything do
 that no single rail takes the whole board down, and so each sensor domain can be power-cycled
 independently — the standard requirement for autopilot sensor recovery.
 
-
 > **Note — why L1 is there.** L1, a 1 µH inductor on the `VDD_5V_SYS` input, is placed to make the input rail more robust. Many
 > off-the-shelf BEC modules do **not** hold their output voltage steady under hard conditions —
 > aggressive manoeuvring, heat, high current draw and so on — and sag below nominal, for example
 > 5.0 V dropping to 4.6 V on under-peaks. L1 is there only to slow and filter that ripple.
 >
-> It is the **only** part added on the input power path. Regulating the 4.8–6 V input range itself
-> is not this board's job — that belongs to a **power mux on the carrier board**.
+> It is the **only** part added on the input power path. Selecting and protecting the input sources
+> is the carrier's job: its **LTC4417 power mux** (see [PAB carrier](#pab-carrier-board)).
 
 Design points:
 
@@ -141,15 +128,30 @@ Design points:
   `VDD_3V3_SD_CARD_EN` — so firmware can hard-reset a hung sensor or the SD card.
 - **Every sensor rail is independently monitored** — each LDL212 output goes through a 10 kΩ / 10 kΩ
   divider to `SCALED_VDD_3V3_SENSORS1..4` and back into the MCU's ADC.
-- **Carrier-side rail control** is brought out on X1: `VDD_5V_PERIPH_nEN` / `_nOC`,
-  `VDD_5V_HIPOWER_nEN` / `_nOC`, `VDD_3V3_SPEKTRUM_POWER_EN`, and the `nPOWER_IN_A/B/C`
-  power-module select lines with `ADC1_3V3` / `ADC1_6V6` sensing.
+- **Carrier power control and status on X1**, seen from the FMU:
+  - Outputs: `VDD_5V_PERIPH_nEN`, `VDD_5V_HIPOWER_nEN`, `VDD_3V3_SPEKTRUM_POWER_EN`.
+  - Inputs: `VDD_5V_PERIPH_nOC`, `VDD_5V_HIPOWER_nOC` (over-current flags), and
+    `nPOWER_IN_A/B/C` — the active-low "input valid" status of the carrier's power mux. The mux
+    chooses the source itself; these are not select lines.
+  - `ADC1_3V3` / `ADC1_6V6` are general-purpose analog inputs (3.3 V and 6.6 V full scale), not
+    power-module sensing. Battery voltage and current come from digital power modules on I2C1 / I2C2.
 
 ### Interfaces exposed to the carrier
 
 - **PWM / timer outputs:** `FMU_CH1`–`FMU_CH8` (X1)
-- **Serial:** UART1 (GPS1), UART2 (TELEM3), UART3 (debug), UART4, UART5 (TELEM2),
-  UART6 (RC input), UART7 (TELEM1), UART8 (GPS2) — with RTS/CTS on TELEM1/2/3
+- **Serial:**
+
+  | UART | Use | Flow control |
+  |---|---|---|
+  | UART7 | TELEM1 | RTS / CTS |
+  | UART5 | TELEM2 | RTS / CTS |
+  | USART2 | TELEM3 | RTS / CTS |
+  | USART1 | GPS1 | — |
+  | UART8 | GPS2 | — |
+  | UART4 | UART4 (with I2C3 on the carrier) | — |
+  | USART3 | Debug console | — |
+  | USART6 | Link to the carrier's IO MCU (RC input only on carriers without an IO MCU) | — |
+
 - **CAN:** CAN1, CAN2 (X1)
 - **Ethernet:** 100BASE-T RMII — MDIO, MDC, REF_CLK, CRS_DV, RXD0/1, TXD0/1, TX_EN, ETH_POWER_EN
   (the PHY lives on the carrier)
@@ -162,9 +164,86 @@ Design points:
 - **Other:** buzzer, safety switch + LED, `nARMED`, `FMU_nRST`, `FMU_CAP1`, `FMU_PPM_INPUT`,
   `SPIX_SYNC`, hardware-revision sense lines, RGB status LEDs (discrete red / green / blue)
 
-Full pin-by-pin tables: **[docs/pinout.md](docs/pinout.md)**.
+---
 
-### PCB and fabrication
+## Sensors and storage
+
+| Board | Part | Function | Bus | VDD bus |
+|---|---|---|---|---|
+| Core | ICM-45686 | IMU1 | SPI1 | `VDD_SENSOR_BUS_1` |
+| Core | MS5611 | Barometer 1 | I2C3 | `VDD_SENSOR_BUS_1` |
+| Core | AT24C64D | EEPROM (0x50) | I2C3 | `VDD_SENSOR_BUS_1` |
+| Core | FM25V02A | FRAM | SPI5 | `VDD_3V3_AUX` |
+| Core | 503398-1892 | microSD | SDMMC2 | `VDD_SD_CARD` |
+| IMU V2 | LSM6DSV32X | IMU2 | SPI2 | `VDD_SENSOR_BUS_2` |
+| IMU V2 | BMI088 | IMU3 | SPI3 | `VDD_SENSOR_BUS_3` |
+| IMU V2 | BMP581 | Barometer 2 (0x46) | I2C4 | `VDD_SENSOR_BUS_4` |
+| IMU V2 | RM3100 | Magnetometer (0x20) | I2C4 | `VDD_SENSOR_BUS_4` |
+| IMU V2 | AT24C64D | Calibration EEPROM (0x50) | I2C4 | `VDD_SENSOR_BUS_4` |
+| IMU V2 | AO3400A | Heater driver | — | `VDD_5V_SYS` |
+| Carrier | AT24C64D | Base EEPROM (0x51) | I2C3 | `VDD_3V3_AUX` |
+
+The sensor-to-bus and sensor-to-rail assignment follows the DS-012 sensor-domain layout: one switched
+rail per sensor domain, and the IMU-board devices on their own buses. The full assignment is still in
+review (see [status](#status-and-roadmap)).
+
+## Naspier IMU V2 board
+
+A small sensor board that sits on its own mount, separate from the core, so the IMUs can be
+vibration-isolated and heated.
+
+- **Parts:** LSM6DSV32X, BMI088, BMP581, RM3100 magnetometer (13101 ASIC + 13104 / 13156 coils),
+  AT24C64D calibration EEPROM, AO3400A low-side heater driver with resistive loads.
+- **Link:** a 34-pin Hirose BM20B receptacle, connected to the core's X3 through a flex cable with
+  BM20B receptacles at both ends (drawn on its own schematic page). X3 follows the DS-012 IMU
+  connector pinout, except pins 11 and 13, which carry the BMP581 INT and RM3100 DRDY.
+
+## PAB carrier board
+
+A base board built to the **Pixhawk Autopilot Bus** standard
+([DS-010](https://github.com/pixhawk/Pixhawk-Standards/blob/master/DS-010%20Pixhawk%20Autopilot%20Bus%20Standard.pdf)),
+drawn after the PAB base reference (RC05) and redrawn by hand. It takes the core on DF40HC(3.0)
+receptacles (3 mm stack height) and is meant to accept standard v5X / v6X modules as well.
+
+**Power**
+
+- **LTC4417 power mux** choosing between two power bricks (Molex 6-pin) and USB VBUS, output
+  `VDD_5V_SYS` to the core.
+- **Two BQ24315 protection switches** for the `VDD_5V_PERIPHERAL` and `VDD_5V_HIGHPOWER` rails, with
+  enable and over-current flags back to the FMU.
+- MCP1727 for the IO MCU rail (`VDD_3V3_IO`); LDL212s for the Ethernet PHY and the Spektrum
+  receiver supply.
+
+**Electronics**
+
+- **IO MCU:** STM32F103C8, linked to the FMU over USART6; drives PWM IO CH1–8 and decodes RC input
+  (PPM, S.BUS with a 74LVC2G240 buffer, DSM / Spektrum).
+- **Ethernet:** LAN8742AI PHY with common-mode chokes.
+- **CAN:** two TJA1051 transceivers with termination.
+- Reset-request gate on `FMU_nRST`, `VBUS_SENSE` gate, buzzer driver.
+
+**Connectors**
+
+| Port | Connector |
+|---|---|
+| TELEM1, TELEM2, TELEM3 | JST GH 6-pin, with RTS / CTS |
+| GPS1 (+ safety switch, buzzer) / GPS2 | JST GH 10-pin / 6-pin |
+| UART4 + I2C3, I2C3 | JST GH 6-pin, 4-pin |
+| CAN1, CAN2 | JST GH 4-pin |
+| AD&IO, external SPI6 | JST GH 8-pin, 11-pin |
+| RC IN, DSM / Spektrum | 2×3 header + JST GH 5-pin, JST PH 3-pin |
+| Ethernet | JST GH 4-pin |
+| USB | USB-C and JST GH 4-pin |
+| FMU debug, IO debug | JST SH 10-pin |
+| Power bricks 1 and 2 | Molex 6-pin |
+| PWM outputs | Two 3×8 right-angle headers: FMU CH1–8 and IO CH1–8 on `VDD_SERVO` |
+
+**State:** schematic drafted and under review; PCB placement has started (see the renders above).
+PWM outputs are not buffered or level-shifted on this revision.
+
+---
+
+## PCB and fabrication — core module
 
 | | |
 |---|---|
@@ -177,7 +256,6 @@ Full pin-by-pin tables: **[docs/pinout.md](docs/pinout.md)**.
 | EDA tool | KiCad 10 |
 | Fabrication Target | JLCPCB, NextPCB |
 
-
 **Component placement follows DS-012.** The board outline, the positions of X1 and X2, the mounting
 holes and the keep-out zones are taken from the positioning given in
 **[DS-012 — Pixhawk Autopilot v6X Standard](https://github.com/pixhawk/Pixhawk-Standards/blob/master/DS-012%20Pixhawk%20Autopilot%20v6X%20Standard.pdf)**,
@@ -185,8 +263,8 @@ not chosen freely. That is what makes the module mechanically as well as electri
 a v6X carrier: the connectors land where a v6X carrier expects them, and the mounting holes line up
 with the carrier's standoffs. Everything else on the board is placed around those fixed points.
 
-The one piece not governed by DS-012 is **X3**, the 34-pin FFC to the Naspier V2 IMU board — the
-standard does not define it, so its position is ours to choose, constrained by the IMU board stack
+The one piece not governed by DS-012 is **X3**, the 34-pin connector to the IMU V2 board — the
+standard does not define its position, so it is ours to choose, constrained by the IMU board stack
 rather than by the carrier.
 
 **Impedance control.** The RMII Ethernet group is routed inside an impedance-controlled zone
@@ -228,13 +306,15 @@ and capped, or solder will wick into them during reflow and weaken the socket's 
 
 ![microSD shield tab over the BGA fanout — outer box: BGA via field, inner box: shield tab](docs/images/bga-fanout-sd-shield.png)
 
----
+![Naspier Core dimensions](docs/images/dimensions.png)
 
-## Renders
+### Core module renders
 
 | Top | Bottom |
 |---|---|
 | ![Top render](docs/images/rendered-top.png) | ![Bottom render](docs/images/rendered-bottom.png) |
+
+---
 
 ## Repository contents
 
@@ -242,25 +322,26 @@ and capped, or solder will wick into them during reflow and weaken the socket's 
 docs/
 ├── pinout.md                        X1 / X2 / X3 pin tables, generated from the schematic netlist
 ├── schematic/
-│   └── Naspier-Core-Schematic.pdf   Schematic, core module + Naspier V2 IMU board
+│   └── Naspier-Core-Schematic.pdf   Schematic: core module, IMU V2 board, PAB carrier, flex cable
 └── images/
-    ├── dimensions.png               Board outline, mounting-hole pattern and dimensions
-    ├── rendered-top.png             3D render, top
-    ├── rendered-bottom.png          3D render, bottom (H743, X1, X2)
+    ├── rendered-system-top.png      3D render of all three boards, top
+    ├── rendered-system-bottom.png   3D render of all three boards, bottom
+    ├── dimensions.png               Core board outline, mounting-hole pattern and dimensions
+    ├── rendered-top.png             3D render of the core module, top
+    ├── rendered-bottom.png          3D render of the core module, bottom (H743, X1, X2)
     └── bga-fanout-sd-shield.png     microSD shield tab over the BGA fanout
 ```
 
-The schematic PDF covers, in order:
+The schematic PDF (17 pages) covers, in order:
 
-1. System block diagram (**preliminary**, still being updated)
-2. H743 base: MCU, decoupling, crystals, LEDs, RTC, debug test points,
-3. On-board elements: IMU, baro, FRAM, EEPROM, microSD, I2C pull-ups
-4. Power stage
-5. Connectors: X1, X2, X3
-6. Naspier V2 IMU board: IMU2, IMU3, baro 2, magnetometer, heater, EEPROM, X3 mate
-7. Power bus index
-
-The last two pages are placeholders for the carrier board and are still empty.
+| Page | Sheet |
+|---|---|
+| 1 | System block diagram (**preliminary**, still being updated) |
+| 2–6 | **Core module:** overview, H743 base (MCU, decoupling, crystals, LEDs, RTC, debug test points), power stage, on-board elements (IMU, baro, FRAM, EEPROM, microSD, I2C pull-ups), connectors X1 / X2 / X3 |
+| 7 | **IMU V2 board:** IMU2, IMU3, baro 2, magnetometer, heater, EEPROM, X3 mate |
+| 8–14 | **PAB carrier:** overview, X1 / X2 receptacles and mounting, power, IO MCU, elements (Ethernet PHY, gates, EEPROM), two connector sheets |
+| 15 | **Flex cable:** X3 to the IMU V2 board |
+| 16–17 | System explanation and power-bus index |
 
 > **Editable KiCad source files are not published in this repository** — see
 > [what is published here, and what is not](#what-is-published-here-and-what-is-not).
@@ -271,38 +352,38 @@ The last two pages are placeholders for the carrier board and are still empty.
 |---|---|
 | Revision | **REV0 VER0** — board ID `NASPIER_CORE_REV0_VER0` |
 | Design started | 2026-08-08 |
-| Last updated | 2026-09-19 |
+| Last updated | 2026-10-18 |
 | Designer | Ahmet Vapurcu (**naspaw**) |
-| Schematic | Core drafted, IMU board base schematic added; block diagram preliminary; review pending |
-| PCB layout | **In progress**: 12 layers; placement revised, BGA fanout complete; power and RMII routed apart from digital signals; routing from the BGA to its peripherals started |
-| Mechanical | Mounting holes set (2.3 / 4.0 mm, 31.4 × 24.4 mm); stack clearance to the IMU board, mechanical drawing and IMU vibration isolation still open |
-| Drawings | Core board and IMU board signal drawings, IMU ↔ Core FFC cable drawing — not started |
+| Schematic | All three boards drafted and split by board (CORE / SENSOR / CARRIER) plus the flex cable; block diagram preliminary; full review in progress |
+| PCB layout — core | **In progress**: 12 layers; BGA fanout complete; power and RMII routed apart from digital signals; routing from the BGA to its peripherals started |
+| PCB layout — IMU V2, carrier | Placement started |
+| Mechanical | Core mounting holes set (2.3 / 4.0 mm, 31.4 × 24.4 mm); stack clearance to the IMU board, mechanical drawing and IMU vibration isolation still open |
 | Fabricated | No |
 | Tested | No |
-| Firmware | None — no PX4/ArduPilot board target exists for this design |
+| Firmware | None — no PX4/ArduPilot board target is published for this design |
 
 ### Upcoming work
 
 What is queued for this design, roughly in order. This list is the honest state of the project.
+The public tracker is the [release checklist](https://github.com/naspaw/NASPIER_CORE/issues/2).
 
 | # | Task | State | What it covers |
 |---|---|---|---|
-| 1 | **Schematic review** | Open | Full pass over the V0 sheets, now including the IMU board |
-| 2 | **Fanout selection** | ✅ Done | Through-hole dogbone, 0.15 / 0.32 mm vias, all 201 balls, 12-layer 1.6 mm |
-| 3 | **Component placement review** | 🔄 In progress | Revised for signal routing; H743 moved off-centre; check against DS-012 positions |
-| 4 | **Mounting hole design** | 🔄 In progress | Holes set at 2.3 / 4.0 mm on 31.4 × 24.4 mm; keep-outs and stack clearance still open |
-| 5 | **microSD shield tab over fanout** | Open | Confirm filled + capped vias with the fab, or move the socket off the 10 GND vias |
-| 6 | **IMU board assembly design** | Open | How Naspier Core and the Naspier V2 IMU board stack and mate, including whether the IMU board needs mounting holes of its own |
-| 7 | **Stack-up-driven routing** | 🔄 In progress | Power and RMII routed apart from digital signals; BGA-to-peripheral signal routing started; RMII on its 50 Ω single-ended layer |
-| 8 | **System block diagram** | Open | First version published; still needs updates |
-| 9 | **Core board signal drawing** | Open | Signal-flow drawing of the core module: H743 to on-board sensors, storage, switched power rails and X1 / X2 / X3 |
-| 10 | **IMU board signal drawing** | Open | Signal-flow drawing of the Naspier V2 IMU board: IMU2, IMU3, baro 2, magnetometer, heater and EEPROM to the X3 mate |
-| 11 | **FFC cable drawing (IMU ↔ Core)** | Open | FFC between Core and the IMU board: pin-to-pin map, length, contact side / orientation, stiffeners |
-| 12 | **Mechanical drawing** | Open | Assembly drawing of Naspier Core and the IMU board: outlines, stack heights, IMU board position, fasteners |
-| 13 | **Vibration isolation mechanics** | Open | Damped mount for the IMU board: isolator type and placement, travel allowance, FFC slack so the cable does not short-circuit the isolation |
-| 14 | **BOM availability check** | ⚠️ Open — issues found | Confirm every line is actually sourceable before the design is frozen. The H743 and BMI088 are already running short; see [supply status](#supply-status) |
-| 15 | **Further design checks** | Open | Remaining private verification passes |
-| 16 | **Publish layer images + BOM** | Open | Once layout is complete; see the release policy above |
+| 1 | **Schematic review** | 🔄 In progress | All three boards: missing and optional parts, wrong labels, ERC to 0 errors |
+| 2 | **Sensor, bus and power-bus assignment review** | Open | Every sensor against its bus, chip select, data-ready and switched rail |
+| 3 | **Components and voltage buses review** | Open | Part values, ratings and packages; logic levels on I2C / SPI / UART / CAN; rails, loads, sequencing |
+| 4 | **Fanout selection** | ✅ Done | Through-hole dogbone, 0.15 / 0.32 mm vias, all 201 balls, 12-layer 1.6 mm |
+| 5 | **X1 / X2 footprints** | ✅ Done | Official Pixhawk PAB footprints on core and carrier |
+| 6 | **Component placement review** | 🔄 In progress | Core against DS-012 positions; carrier connector positions and orientations |
+| 7 | **microSD shield tab over fanout** | Open | Confirm filled + capped vias with the fab, or move the socket off the 10 GND vias |
+| 8 | **IMU board assembly design** | Open | How the core and the IMU V2 board stack and mate, flex cable length and orientation |
+| 9 | **Stack-up-driven routing** | 🔄 In progress | Core: BGA-to-peripheral signal routing; RMII on its 50 Ω single-ended layer |
+| 10 | **Carrier PCB layout** | 🔄 Started | Placement, then routing |
+| 11 | **System block diagram** | Open | First version published; still needs updates |
+| 12 | **Signal and mechanical drawings** | Open | Core, IMU board and carrier signal drawings; flex cable drawing; assembly drawing |
+| 13 | **Vibration isolation mechanics** | Open | Damped mount for the IMU board, with flex-cable slack |
+| 14 | **BOM availability check** | ⚠️ Open — issues found | See [supply status](#supply-status) |
+| 15 | **Publish layer images + BOM** | Open | Once layout is complete; see the release policy above |
 
 ### Supply status
 
@@ -320,7 +401,7 @@ dependency on H753 stock, but it does not protect against the H743 itself runnin
 design is frozen, each of these parts needs one of two outcomes: a confirmed source, or a
 drop-in / footprint-compatible alternative.
 
-This README will grow as the design does.
+This README will grow as the design does. Changes are listed in the [CHANGELOG](CHANGELOG.md).
 
 ## Feedback
 
@@ -332,9 +413,11 @@ Particularly useful:
 
 - **Schematic errors** — wrong part, wrong value, missing pull-up or decoupling, a net that does not
   go where the name says it does
-- **v6X compliance** — anything on X1 or X2 that does not match
-  [DS-012](https://github.com/pixhawk/Pixhawk-Standards/blob/master/DS-012%20Pixhawk%20Autopilot%20v6X%20Standard.pdf),
-  or a carrier board this module would not actually mate with
+- **v6X / PAB compliance** — anything on X1 or X2 that does not match
+  [DS-012](https://github.com/pixhawk/Pixhawk-Standards/blob/master/DS-012%20Pixhawk%20Autopilot%20v6X%20Standard.pdf) /
+  [DS-010](https://github.com/pixhawk/Pixhawk-Standards/blob/master/DS-010%20Pixhawk%20Autopilot%20Bus%20Standard.pdf),
+  or a carrier / module this design would not actually mate with
+- **Carrier board** — power mux, protection switches, IO MCU, connector choices
 - **BGA fanout**: experience with 0.15 mm through vias on a 1.6 mm, 12-layer board at 0.65 mm pitch.
   Which fabs build it reliably, and what they charge for filled and capped vias
 - **Power tree** — rail sequencing, regulator choice, current headroom, monitoring divider values
