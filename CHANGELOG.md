@@ -2,6 +2,20 @@
 
 All notable changes to the Naspier Core hardware design are recorded here.
 
+## [REV0 VER0] — 2026-10-28 · schematic review applied
+
+Still REV0 VER0, still not fabricated or tested. **The schematic review is applied and the
+schematic PDF is re-plotted (18 pages).**
+
+- Review fixes on all three boards; ERC now reports no errors.
+- Parts: LDOs changed to TLV75533, bulk capacitors to buyable 1210 / 0805 parts, crystals and load
+  capacitors corrected, heater resistors uprated, RTC charge path and RC input chain fitted.
+- Wiring: USB-C, ESD flow-through and GPS ESD ground fixed; VREF+ on the filtered analog 3.3 V;
+  Spektrum receiver power enable as on the reference base board.
+- New carrier page **PWM outputs**: series resistors and ESD on all 16 servo outputs, IO channels
+  through a level shifter with a selectable 3.3 V / 5 V output level.
+- Carrier baseboard mounting holes changed to M3; connector references renamed to CN.
+
 ## [REV0 VER0] — 2026-10-18 · three-board documentation, PAB footprints
 
 Still REV0 VER0, still not fabricated or tested. **The README now documents the whole system — core

@@ -332,16 +332,16 @@ docs/
     └── bga-fanout-sd-shield.png     microSD shield tab over the BGA fanout
 ```
 
-The schematic PDF (17 pages) covers, in order:
+The schematic PDF (18 pages) covers, in order:
 
 | Page | Sheet |
 |---|---|
 | 1 | System block diagram (**preliminary**, still being updated) |
 | 2–6 | **Core module:** overview, H743 base (MCU, decoupling, crystals, LEDs, RTC, debug test points), power stage, on-board elements (IMU, baro, FRAM, EEPROM, microSD, I2C pull-ups), connectors X1 / X2 / X3 |
 | 7 | **IMU V2 board:** IMU2, IMU3, baro 2, magnetometer, heater, EEPROM, X3 mate |
-| 8–14 | **PAB carrier:** overview, X1 / X2 receptacles and mounting, power, IO MCU, elements (Ethernet PHY, gates, EEPROM), two connector sheets |
-| 15 | **Flex cable:** X3 to the IMU V2 board |
-| 16–17 | System explanation and power-bus index |
+| 8–15 | **PAB carrier:** overview, X1 / X2 receptacles and mounting, power, IO MCU, elements (Ethernet PHY, gates, EEPROM), two connector sheets, PWM outputs (series resistors, ESD, IO level shifter) |
+| 16 | **Flex cable:** X3 to the IMU V2 board |
+| 17–18 | System explanation and power-bus index |
 
 > **Editable KiCad source files are not published in this repository** — see
 > [what is published here, and what is not](#what-is-published-here-and-what-is-not).
@@ -352,7 +352,7 @@ The schematic PDF (17 pages) covers, in order:
 |---|---|
 | Revision | **REV0 VER0** — board ID `NASPIER_CORE_REV0_VER0` |
 | Design started | 2026-08-08 |
-| Last updated | 2026-10-18 |
+| Last updated | 2026-10-28 |
 | Designer | Ahmet Vapurcu (**naspaw**) |
 | Schematic | All three boards drafted and split by board (CORE / SENSOR / CARRIER) plus the flex cable; block diagram preliminary; full review in progress |
 | PCB layout — core | **In progress**: 12 layers; BGA fanout complete; power and RMII routed apart from digital signals; routing from the BGA to its peripherals started |
