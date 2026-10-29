@@ -2,6 +2,17 @@
 
 All notable changes to the Naspier Core hardware design are recorded here.
 
+## [REV0 VER0] — 2026-10-29 · carrier placement, re-plotted schematic
+
+Still REV0 VER0, still not fabricated or tested.
+
+- Schematic PDF re-plotted (16 pages). The PWM outputs page is redrawn in a compact layout; CN7 and
+  CN23 are now top-entry JST GH connectors.
+- New 3D renders of the PAB carrier, top and bottom, at its current placement stage.
+- Carrier board size: placement started at 86.5 × 43.5 mm and is expected to settle at about
+  95 × 45 mm in the next few weeks.
+- README: notes that this is a hobby project, without a planned schedule.
+
 ## [REV0 VER0] — 2026-10-28 · schematic review applied
 
 Still REV0 VER0, still not fabricated or tested. **The schematic review is applied and the
