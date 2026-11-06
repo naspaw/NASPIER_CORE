@@ -10,6 +10,7 @@ Still REV0 VER0, still not fabricated or tested.
 - New 3D renders: all three boards, the core module and the PAB carrier, top and bottom.
 - Carrier outline is now 90 × 43.5 mm (started at 86.5 × 43.5 mm; about 95 × 45 mm expected).
 - Schematic PDF re-plotted (16 pages).
+- Carrier connector map (top side) and functional group map with outline dimensions (bottom side).
 - README reworked around the images: renders at the top, an at-a-glance table, and a render pair at
   the start of each board section.
 

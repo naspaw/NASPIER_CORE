@@ -266,7 +266,21 @@ progress.
 | ![PAB carrier, top](docs/images/rendered-carrier-top.png) | ![PAB carrier, bottom](docs/images/rendered-carrier-bottom.png) |
 
 <sub>3D renders of the PAB carrier, 6 November 2026. Component placement done for a first check, not
-routed. Connector and group label drawings for the carrier are in preparation.</sub>
+routed.</sub>
+
+### Carrier connector and group map
+
+![PAB carrier, top side: connector map](docs/images/carrier-connectors-top.png)
+
+<sub>Top side: vehicle connectors (TELEM 1–3, GPS 1–2, UART4 + I2C3, I2C3, RC, CAN 1–2), the PAB X1 / X2
+receptacles for the core module, the two Molex power inputs, and the PWM headers: AUX PWM (FMU CH1–8)
+and MAIN PWM (IO CH1–8).</sub>
+
+![PAB carrier, bottom side: functional groups and outline, 90 × 43.5 mm](docs/images/carrier-groups-bottom.png)
+
+<sub>Bottom side: functional groups (power mux, IO LDO, IO MCU, Ethernet PHY, USB, SPI6, ETH, CAN
+transceivers, EEPROM, peripheral and high-power groups, RC invert buffer), the FC and IO debug and
+AD&IO connectors, and the test points. Outline 90 × 43.5 mm.</sub>
 
 **Component placement:**
 
@@ -357,6 +371,8 @@ docs/
     ├── rendered-system-bottom.png   3D render of all three boards, bottom
     ├── rendered-carrier-top.png     3D render of the PAB carrier, top
     ├── rendered-carrier-bottom.png  3D render of the PAB carrier, bottom
+    ├── carrier-connectors-top.png   PAB carrier connector map, top side
+    ├── carrier-groups-bottom.png    PAB carrier functional groups and outline, bottom side
     ├── dimensions.png               Core board outline, mounting-hole pattern and dimensions
     ├── rendered-top.png             3D render of the core module, top (microSD side)
     ├── rendered-bottom.png          3D render of the core module, bottom (H743, X1, X2)
