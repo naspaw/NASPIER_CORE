@@ -1,26 +1,30 @@
 # Naspier Core
 
-**A Pixhawk v6X-compatible flight controller system — design study, revision REV0 VER0
+<p align="center">
+  <img src="docs/images/rendered-system-top.png" alt="All three boards, top" width="49%">
+  <img src="docs/images/rendered-system-bottom.png" alt="All three boards, bottom" width="49%">
+</p>
+<p align="center"><sub>Core module · IMU V2 board · PAB carrier, top and bottom. 3D renders, 6 November 2026:
+component placement done for a first check, not routed yet.</sub></p>
+
+**A Pixhawk v6X-compatible flight controller system: a hobby design study, revision REV0 VER0
 (started September 2026), referred to below as V0.**
 
 Naspier Core started as a single autopilot core (FMU) module built around the **STM32H743IIK6**. It
-is now a **three-board system**, designed and documented together:
+is now a **three-board system**, designed and documented together.
 
-| Board | What it is | Links to |
-|---|---|---|
-| **Naspier Core** (core module) | The FMU: H743, power tree, storage, IMU1 + baro 1 | Carrier over the standard Pixhawk **X1 (100-pin) + X2 (50-pin)** Hirose DF40 connectors; IMU board over the 34-pin **X3** |
-| **Naspier IMU V2** (sensor board) | Second and third IMU, baro 2, magnetometer, heater, calibration EEPROM | Core X3, through a 34-pin flex cable |
-| **Naspier PAB carrier** (base board) | Power mux, IO MCU, Ethernet PHY, CAN, all vehicle connectors and PWM headers | Core X1 + X2 receptacles, built to the Pixhawk Autopilot Bus standard |
+### At a glance
+
+| | Core module | IMU V2 board | PAB carrier |
+|---|---|---|---|
+| **Role** | The FMU: H743, power tree, storage, IMU1 + baro 1 | IMU2 + IMU3, baro 2, magnetometer, heater, calibration EEPROM | Power mux, IO MCU, Ethernet PHY, CAN, vehicle connectors, PWM outputs |
+| **Links to** | Carrier over Pixhawk **X1 (100-pin) + X2 (50-pin)** Hirose DF40; IMU board over the 34-pin **X3** | Core X3, through a 34-pin flex cable | Core X1 + X2 receptacles, to the Pixhawk Autopilot Bus standard |
+| **Size** | 29 × 36 mm | 21 × 21 mm | 90 × 43.5 mm now, about 95 × 45 mm expected |
+| **Layout** | Placed; BGA fanout done; routing started | Placed | Placed (first check); routing next |
+| **Details** | [Core module](#core-module) | [IMU V2 board](#naspier-imu-v2-board) | [PAB carrier](#pab-carrier-board) |
 
 The core still follows the v6X interface on its own, so it is meant to drop onto any
 **Pixhawk v6X-standard carrier**, and the carrier is meant to accept standard v5X / v6X modules.
-
-| Top | Bottom |
-|---|---|
-| ![All three boards, top](docs/images/rendered-system-top.png) | ![All three boards, bottom](docs/images/rendered-system-bottom.png) |
-
-*3D renders, 18 October 2026: core module (top left), IMU V2 board, PAB carrier (bottom). The carrier
-has moved on since then; see the [current carrier renders](#pab-carrier-board).*
 
 ---
 
@@ -79,6 +83,13 @@ the crypto accelerator. Nothing else about the board changes.
 ---
 
 ## Core module
+
+| Top | Bottom |
+|---|---|
+| ![Core module, top: microSD, power stage, RTC cell](docs/images/rendered-top.png) | ![Core module, bottom: H743, X1, X2](docs/images/rendered-bottom.png) |
+
+<sub>Top: microSD socket, power stage, RTC backup cell, X3 to the IMU board. Bottom: STM32H743, the
+X1 / X2 board-to-board connectors, IMU1 and baro 1.</sub>
 
 ### Board-to-board connectors
 
@@ -245,24 +256,25 @@ receptacles (3 mm stack height) and is meant to accept standard v5X / v6X module
 through an SN74LVC8T245 level shifter, whose output side is set to 3.3 V or 5 V by a TPS2116 power mux
 (solder-strap selection, as on the Holybro baseboard V2).
 
-**Board size.** The carrier layout started at **86.5 × 43.5 mm**. Placement is still in progress, and
-the outline is expected to settle at about **95 × 45 mm** within the next few weeks, which gives the
-connectors and the PWM headers the room they need. Treat both numbers as work in progress.
-
-**Component placement (in progress):**
-
-- Core module receptacles (X1 / X2) in the middle of the top side, inside the module outline.
-- JST GH vehicle connectors grouped at the board edges. CN7 and CN23 were changed from side-entry
-  to top-entry parts to suit the placement.
-- The two 3×8 PWM headers at one short end, with the PWM ESD arrays on the bottom side right behind
-  them.
-- IO MCU, USB-C and the power stage on the bottom side.
+**Board size.** The carrier layout started at **86.5 × 43.5 mm** and is **90 × 43.5 mm** now, with the
+components placed. The outline is expected to settle at about **95 × 45 mm** in the next few weeks,
+which gives the connectors and the PWM headers the room they need. Treat these numbers as work in
+progress.
 
 | Top | Bottom |
 |---|---|
 | ![PAB carrier, top](docs/images/rendered-carrier-top.png) | ![PAB carrier, bottom](docs/images/rendered-carrier-bottom.png) |
 
-*3D renders of the PAB carrier, 29 October 2026. Placement in progress, not routed.*
+<sub>3D renders of the PAB carrier, 6 November 2026. Component placement done for a first check, not
+routed. Connector and group label drawings for the carrier are in preparation.</sub>
+
+**Component placement:**
+
+- Top side: the core module receptacles (X1 / X2) in the middle, inside the module outline; the JST GH
+  vehicle connectors at one end; the two 3×8 PWM headers at the other end. CN7 and CN23 were changed
+  from side-entry to top-entry parts to suit the placement.
+- Bottom side: the IO MCU, USB-C, the power stage, the Ethernet PHY area and the PWM ESD arrays behind
+  the headers.
 
 ---
 
@@ -331,12 +343,6 @@ and capped, or solder will wick into them during reflow and weaken the socket's 
 
 ![Naspier Core dimensions](docs/images/dimensions.png)
 
-### Core module renders
-
-| Top | Bottom |
-|---|---|
-| ![Top render](docs/images/rendered-top.png) | ![Bottom render](docs/images/rendered-bottom.png) |
-
 ---
 
 ## Repository contents
@@ -349,10 +355,10 @@ docs/
 └── images/
     ├── rendered-system-top.png      3D render of all three boards, top
     ├── rendered-system-bottom.png   3D render of all three boards, bottom
-    ├── rendered-carrier-top.png     3D render of the PAB carrier, top (placement in progress)
-    ├── rendered-carrier-bottom.png  3D render of the PAB carrier, bottom (placement in progress)
+    ├── rendered-carrier-top.png     3D render of the PAB carrier, top
+    ├── rendered-carrier-bottom.png  3D render of the PAB carrier, bottom
     ├── dimensions.png               Core board outline, mounting-hole pattern and dimensions
-    ├── rendered-top.png             3D render of the core module, top
+    ├── rendered-top.png             3D render of the core module, top (microSD side)
     ├── rendered-bottom.png          3D render of the core module, bottom (H743, X1, X2)
     └── bga-fanout-sd-shield.png     microSD shield tab over the BGA fanout
 ```
@@ -376,11 +382,11 @@ The schematic PDF (16 pages) covers, in order:
 |---|---|
 | Revision | **REV0 VER0** — board ID `NASPIER_CORE_REV0_VER0` |
 | Design started | 2026-08-08 |
-| Last updated | 2026-10-29 |
+| Last updated | 2026-11-06 |
 | Designer | Ahmet Vapurcu (**naspaw**) |
 | Schematic | All three boards drafted and split by board (CORE / SENSOR / CARRIER) plus the flex cable; block diagram preliminary; full review in progress |
 | PCB layout — core | **In progress**: 12 layers; BGA fanout complete; power and RMII routed apart from digital signals; routing from the BGA to its peripherals started |
-| PCB layout — IMU V2, carrier | Placement in progress; carrier outline 86.5 × 43.5 mm now, expected to end at about 95 × 45 mm |
+| PCB layout — IMU V2, carrier | Component placement done for a first check; carrier outline 90 × 43.5 mm now, expected to end at about 95 × 45 mm |
 | Mechanical | Core mounting holes set (2.3 / 4.0 mm, 31.4 × 24.4 mm); stack clearance to the IMU board, mechanical drawing and IMU vibration isolation still open |
 | Fabricated | No |
 | Tested | No |
@@ -398,11 +404,11 @@ The public tracker is the [release checklist](https://github.com/naspaw/NASPIER_
 | 3 | **Components and voltage buses review** | Open | Part values, ratings and packages; logic levels on I2C / SPI / UART / CAN; rails, loads, sequencing |
 | 4 | **Fanout selection** | ✅ Done | Through-hole dogbone, 0.15 / 0.32 mm vias, all 201 balls, 12-layer 1.6 mm |
 | 5 | **X1 / X2 footprints** | ✅ Done | Official Pixhawk PAB footprints on core and carrier |
-| 6 | **Component placement review** | 🔄 In progress | Core against DS-012 positions; carrier connector positions and orientations |
+| 6 | **Component placement review** | 🔄 First check | Core against DS-012 positions; carrier connector positions and orientations |
 | 7 | **microSD shield tab over fanout** | Open | Confirm filled + capped vias with the fab, or move the socket off the 10 GND vias |
 | 8 | **IMU board assembly design** | Open | How the core and the IMU V2 board stack and mate, flex cable length and orientation |
 | 9 | **Stack-up-driven routing** | 🔄 In progress | Core: BGA-to-peripheral signal routing; RMII on its 50 Ω single-ended layer |
-| 10 | **Carrier PCB layout** | 🔄 In progress | Placement (outline growing from 86.5 × 43.5 to about 95 × 45 mm), then routing |
+| 10 | **Carrier PCB layout** | 🔄 In progress | Placement done (first check, 90 × 43.5 mm, about 95 × 45 mm expected); routing next |
 | 11 | **System block diagram** | Open | First version published; still needs updates |
 | 12 | **Signal and mechanical drawings** | Open | Core, IMU board and carrier signal drawings; flex cable drawing; assembly drawing |
 | 13 | **Vibration isolation mechanics** | Open | Damped mount for the IMU board, with flex-cable slack |

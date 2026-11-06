@@ -2,6 +2,17 @@
 
 All notable changes to the Naspier Core hardware design are recorded here.
 
+## [REV0 VER0] — 2026-11-06 · component placement, new renders
+
+Still REV0 VER0, still not fabricated or tested.
+
+- Component placement done on all three boards, ready for a first check. Not routed yet.
+- New 3D renders: all three boards, the core module and the PAB carrier, top and bottom.
+- Carrier outline is now 90 × 43.5 mm (started at 86.5 × 43.5 mm; about 95 × 45 mm expected).
+- Schematic PDF re-plotted (16 pages).
+- README reworked around the images: renders at the top, an at-a-glance table, and a render pair at
+  the start of each board section.
+
 ## [REV0 VER0] — 2026-10-29 · carrier placement, re-plotted schematic
 
 Still REV0 VER0, still not fabricated or tested.
